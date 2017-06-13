@@ -36,6 +36,7 @@ class SpaceShip():
         self.speedLimit = 20
         self.keys = [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]
 
+
     def changeMoveKeys(self, upKey, downKey, leftKey, rightKey):
         # change movement keys if needed for second instance
         
@@ -44,17 +45,17 @@ class SpaceShip():
     def moveKeys(self, keys):
         # arrow keys move rectangle around screen with momentum
         pressed = pygame.key.get_pressed()
-        if pressed[self.keys[0]]: self.ySpeed -= 1
-        if pressed[self.keys[1]]: self.ySpeed += 1
-        if pressed[self.keys[2]]: self.xSpeed -= 1
-        if pressed[self.keys[3]]: self.xSpeed += 1
+        if pressed[self.keys[0]]: self.ySpeed -= 1 # up
+        if pressed[self.keys[1]]: self.ySpeed += 1 #down
+        if pressed[self.keys[2]]: self.xSpeed -= 1 #left
+        if pressed[self.keys[3]]: self.xSpeed += 1 #right
 
         self.x += self.xSpeed
         self.y += self.ySpeed
 
 
     def teleportWall(self):
-        '''object teleports through screen boundary'''
+        '''ship teleports through screen boundary'''
         
         screenWidth = pygame.display.set_mode().get_size()[0]
         screenHeight = pygame.display.set_mode().get_size()[1]
@@ -70,44 +71,30 @@ class SpaceShip():
             self.y = 0-self.height
         
 
-    def checkWallX(self):
-        '''object bounces off x boundary walls'''
-
+    def bounceWalls(self):
+        '''ship bounces off screen boundary'''
+        
         screenWidth = pygame.display.set_mode().get_size()[0]
-        
-        if self.x <= 0 or self.x >= (screenWidth-self.width):
-            return (-1)
-        else:
-            return 1
-
-    def checkWallY(self):
-        '''object bounces off y boundary walls'''
-
         screenHeight = pygame.display.set_mode().get_size()[1]
-        
-        if self.y <= 0 or self.y >= (screenHeight-self.height):
-            return (-1)
-        else:
-            return 1
+
+        if self.x <= 1 or self.x > (screenWidth-self.width)-1:
+            self.xSpeed *= -1
+        if self.y <= 0 or self.y > (screenHeight-self.height):
+            self.ySpeed *= -1
 
 
-    def maxSpeedX(self):
-        '''x speed governor'''
+    def maxSpeed(self):
+        '''speed governor'''
         
         if self.xSpeed >= self.speedLimit:
-            return self.speedLimit
+            self.xSpeed = self.speedLimit
         if self.xSpeed <= -self.speedLimit:
-            return -self.speedLimit
-        return self.xSpeed
+            self.xSpeed = -self.speedLimit
 
-    def maxSpeedY(self):
-        '''y speed governor'''
-        
         if self.ySpeed >= self.speedLimit:
-            return self.speedLimit
+            self.ySpeed = self.speedLimit
         if self.ySpeed <= -self.speedLimit:
-            return -self.speedLimit
-        return self.ySpeed   
+            self.ySpeed = -self.speedLimit
 
 
     def slowMomentum(self):
@@ -122,19 +109,20 @@ class SpaceShip():
 
 
     def flyShip(self):
-        # move with keys, check boundary, check speed limit
+        '''move with keys, check boundary behavior, enforce speed limit'''
+        
         self.moveKeys(self.keys)
-        
-##        self.xSpeed *= self.checkWallX()
-##        self.ySpeed *= self.checkWallY()
-        self.teleportWall()
-        
-        self.xSpeed = self.maxSpeedX()
-        self.ySpeed = self.maxSpeedY()
 
+        self.bounceWalls()
+##        self.teleportWall()
+        
+        self.maxSpeed()
         self.slowMomentum()
-        
-        
+
+
+    def rotateShip(self, angle):
+        pass
+
 
 def waitForEsc():
     '''ESC button quits game'''
@@ -162,10 +150,11 @@ def gameLoop():
                 pygame.quit()
                 sys.exit()
 
-        #### print speed for debugging
-        pressed = pygame.key.get_pressed()
-        if pressed[pygame.K_m]: print(bugs.xSpeed, bugs.ySpeed)
-        ####
+            #### print speed for debugging
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_m:
+                    print(bugs.xSpeed, bugs.ySpeed)
+            ####
 
         bugs.flyShip()
         babs.flyShip()
