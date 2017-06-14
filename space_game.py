@@ -19,23 +19,29 @@ bg = pygame.image.load('/home/rek/Documents/python/sample_projects/stars.jpg')
 clock = pygame.time.Clock()
 
 
-class SpaceShip():
+class SpaceShip(pygame.sprite.Sprite):
     
     def __init__(self):
+        
+        super().__init__()
+        
         img = pygame.image.load('orangeship.png')
         shipSize = (img.get_rect().size)
         self.ship = pygame.transform.scale(img, (int(shipSize[0]/3), int(shipSize[1]/3)))
-        shipRect = self.ship.get_rect()
+        self.rect = self.ship.get_rect()
 
-        self.width = shipRect[2]
-        self.height = shipRect[3]
-        self.x = 0
-        self.y = 0
+        self.width = self.rect.width
+        self.height = self.rect.height
+##        self.x = 0
+##        self.y = 0
         self.xSpeed = 0
         self.ySpeed = 0
         self.speedLimit = 20
         self.keys = [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]
 
+    def setPosition(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
 
     def changeMoveKeys(self, upKey, downKey, leftKey, rightKey):
         # change movement keys if needed for second instance
@@ -50,8 +56,8 @@ class SpaceShip():
         if pressed[self.keys[2]]: self.xSpeed -= 1 #left
         if pressed[self.keys[3]]: self.xSpeed += 1 #right
 
-        self.x += self.xSpeed
-        self.y += self.ySpeed
+        self.rect.x += self.xSpeed
+        self.rect.y += self.ySpeed
 
 
     def teleportWall(self):
@@ -60,15 +66,15 @@ class SpaceShip():
         screenWidth = pygame.display.set_mode().get_size()[0]
         screenHeight = pygame.display.set_mode().get_size()[1]
 
-        if self.x <= (0-self.width):
-            self.x = screenWidth-1
-        if self.x >= screenWidth:
-            self.x = (0-self.width)
+        if self.rect.x <= (0-self.width):
+            self.rect.x = screenWidth-1
+        if self.rect.x >= screenWidth:
+            self.rect.x = (0-self.width)
 
-        if self.y <= (0-self.height):
-            self.y = screenHeight-1
-        if self.y >= screenHeight:
-            self.y = 0-self.height
+        if self.rect.y <= (0-self.height):
+            self.rect.y = screenHeight-1
+        if self.rect.y >= screenHeight:
+            self.rect.y = 0-self.height
         
 
     def bounceWalls(self):
@@ -77,9 +83,9 @@ class SpaceShip():
         screenWidth = pygame.display.set_mode().get_size()[0]
         screenHeight = pygame.display.set_mode().get_size()[1]
 
-        if self.x <= 1 or self.x > (screenWidth-self.width)-1:
+        if self.rect.x <= 1 or self.rect.x > (screenWidth-self.width)-1:
             self.xSpeed *= -1
-        if self.y <= 0 or self.y > (screenHeight-self.height):
+        if self.rect.y <= 0 or self.rect.y > (screenHeight-self.height):
             self.ySpeed *= -1
 
 
@@ -135,14 +141,18 @@ def waitForEsc():
 
 def gameLoop():
 
+    space_group = pygame.sprite.Group()
+    
     bugs = SpaceShip()
-    bugs.x = width/2
-    bugs.y = height-bugs.height
+    bugs.setPosition(width/2, height-bugs.height)
 
     babs = SpaceShip()
-    babs.x = width-babs.width
+    babs.setPosition(0,0)
     babs.changeMoveKeys(pygame.K_e, pygame.K_d,\
                   pygame.K_s, pygame.K_f)
+
+    space_group.add(bugs, babs)
+    print(bugs.rect, babs.rect)
     
     while True:
         for event in pygame.event.get():
@@ -159,10 +169,13 @@ def gameLoop():
         bugs.flyShip()
         babs.flyShip()
         
+        if pygame.sprite.collide_rect(bugs, babs):
+            print('Bunny', bugs.rect, babs.rect)
+
         screen.fill((0,0,0))
         screen.blit(bg, (0,0))
-        screen.blit(bugs.ship, (bugs.x, bugs.y))
-        screen.blit(babs.ship, (babs.x, babs.y))
+        screen.blit(bugs.ship, (bugs.rect.x, bugs.rect.y))
+        screen.blit(babs.ship, (babs.rect.x, babs.rect.y))
         
         clock.tick(40)
         pygame.display.flip()
