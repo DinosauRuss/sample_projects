@@ -21,35 +21,49 @@ clock = pygame.time.Clock()
 
 class SpaceShip(pygame.sprite.Sprite):
     
-    def __init__(self):
+    def __init__(self, img='orangeship.png'):
         
         super().__init__()
         
-        img = pygame.image.load('orangeship.png')
-        shipSize = (img.get_rect().size)
-        self.ship = pygame.transform.scale(img, (int(shipSize[0]/3), int(shipSize[1]/3)))
-        self.rect = self.ship.get_rect()
+        img = pygame.image.load(img)
+        shipSize = img.get_rect().size
+        if shipSize[0] > 50:
+            self.ship = pygame.transform.scale(img, (50, int((50*shipSize[1])/shipSize[0])))
+            self.rect = self.ship.get_rect()
+
+        self.image = self.ship
 
         self.width = self.rect.width
         self.height = self.rect.height
-##        self.x = 0
-##        self.y = 0
+        
         self.xSpeed = 0
         self.ySpeed = 0
         self.speedLimit = 20
-        self.keys = [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]
+        
+        self.keys = [pygame.K_UP, pygame.K_DOWN,\
+                     pygame.K_LEFT, pygame.K_RIGHT,\
+                     pygame.K_c, pygame.K_v]
+
+        self.rotatedDegree = 0
 
     def setPosition(self, x, y):
         self.rect.x = x
         self.rect.y = y
 
-    def changeMoveKeys(self, upKey, downKey, leftKey, rightKey):
-        # change movement keys if needed for second instance
+    def changeMoveKeys(self,\
+                       upKey = pygame.K_UP,\
+                       downKey = pygame.K_DOWN,\
+                       leftKey = pygame.K_LEFT,\
+                       rightKey = pygame.K_RIGHT,\
+                       angleLeftKey = pygame.K_c,\
+                       angleRightKey = pygame.K_v):
         
-        self.keys = [upKey, downKey, leftKey, rightKey]
+        # change movement keys if needed for second instance
+        self.keys = [upKey, downKey, leftKey, rightKey, angleLeftKey, angleRightKey]
 
     def moveKeys(self, keys):
         # arrow keys move rectangle around screen with momentum
+        
         pressed = pygame.key.get_pressed()
         if pressed[self.keys[0]]: self.ySpeed -= 1 # up
         if pressed[self.keys[1]]: self.ySpeed += 1 #down
@@ -58,6 +72,9 @@ class SpaceShip(pygame.sprite.Sprite):
 
         self.rect.x += self.xSpeed
         self.rect.y += self.ySpeed
+
+        if pressed[self.keys[4]]: self.rotateShip(10)
+        if pressed[self.keys[5]]: self.rotateShip(-10)
 
 
     def teleportWall(self):
@@ -127,7 +144,18 @@ class SpaceShip(pygame.sprite.Sprite):
 
 
     def rotateShip(self, angle):
-        pass
+        
+        currentPos = self.rect.center
+        
+        degree = self.rotatedDegree + angle
+        self.rotatedDegree = degree
+        self.rotatedDegree %= 360
+
+        self.image = pygame.transform.rotate(self.ship, degree)
+
+        self.rect = self.image.get_rect()
+        self.rect.center = currentPos
+        
 
 
 def waitForEsc():
@@ -143,13 +171,14 @@ def gameLoop():
 
     space_group = pygame.sprite.Group()
     
-    bugs = SpaceShip()
+    bugs = SpaceShip('ship-a.png')
     bugs.setPosition(width/2, height-bugs.height)
 
     babs = SpaceShip()
     babs.setPosition(0,0)
     babs.changeMoveKeys(pygame.K_e, pygame.K_d,\
                   pygame.K_s, pygame.K_f)
+    
 
     space_group.add(bugs, babs)
     print(bugs.rect, babs.rect)
@@ -174,8 +203,8 @@ def gameLoop():
 
         screen.fill((0,0,0))
         screen.blit(bg, (0,0))
-        screen.blit(bugs.ship, (bugs.rect.x, bugs.rect.y))
-        screen.blit(babs.ship, (babs.rect.x, babs.rect.y))
+        screen.blit(bugs.image, (bugs.rect.x, bugs.rect.y))
+        screen.blit(babs.image, (babs.rect.x, babs.rect.y))
         
         clock.tick(40)
         pygame.display.flip()
