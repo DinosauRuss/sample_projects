@@ -460,7 +460,7 @@ def mainLoop():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        
+                
         # run all spirtes update functions
         all_sprites.update()
 
@@ -541,6 +541,7 @@ def mainLoop():
 
         waitForEsc()
     pygame.quit()
+    sys.exit
 
 
 if __name__ =='__main__':

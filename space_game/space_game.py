@@ -14,7 +14,7 @@ os.environ['SDL_VIDEO_CENTERED'] = 'True'
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption('Space')
 
-bg = pygame.image.load('/home/rek/Documents/python/sample_projects/stars.jpg')
+bg = pygame.image.load('stars.jpg')
 
 clock = pygame.time.Clock()
 
